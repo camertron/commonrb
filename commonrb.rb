@@ -22,19 +22,15 @@ module CommonRb
       end
     end
 
-    def define_class(locals = {}, superclass = nil, &block)
-      locals, superclass = if locals.is_a?(Hash)
-        [locals, superclass]
-      else
-        [superclass, locals]
-      end
-
+    def define_class(superclass = nil, &block)
       sc = superclass ? [superclass] : []
 
       Class.new(*sc) do
-        locals.each_pair do |name, value|
-          define_method(name) { value }
-          singleton_class.send(:define_method, name) { value }
+        singleton_class.send(:define_method, :attach) do |methods|
+          methods.each_pair do |method, value|
+            define_method(method) { value }
+            singleton_class.send(:define_method, method) { value }
+          end
         end
 
         class_eval(&block)
